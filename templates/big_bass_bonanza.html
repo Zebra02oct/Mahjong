@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Big Bass Bonanza - MegaWin X</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0077be 0%, #00a8e8 50%, #0077be 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, #00a8e8 0%, #0077be 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .header .balance {
+            background: rgba(0,0,0,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Game Container */
+        .game-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Free Spins Counter */
+        .freespins-banner {
+            background: linear-gradient(135deg, #ff6b35, #f7c59f);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+            display: none;
+        }
+        .freespins-banner.active { display: block; }
+        .freespins-banner h2 { color: #1a1a2e; font-size: 1.2rem; }
+        .freespins-banner .spins-left {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        /* Slot Machine */
+        .slot-machine {
+            background: linear-gradient(135deg, #1a5c7c 0%, #0d3d54 100%);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            border: 3px solid #00a8e8;
+        }
+
+        .reels-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            background: #0a2a3a;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .reel {
+            aspect-ratio: 1;
+            background: linear-gradient(180deg,
+                #0a2a3a 0%, #1a5c7c 20%, #2a8ab0 50%, #1a5c7c 80%, #0a2a3a 100%);
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .symbol {
+            font-size: 2rem;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .reel.spinning .symbol {
+            animation: spin 0.1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+
+        /* Fisherman Animation */
+        .fisherman-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .fisherman-overlay.active { display: flex; }
+        .fisherman-content {
+            text-align: center;
+            color: white;
+        }
+        .fisherman-content .animation {
+            font-size: 5rem;
+            animation: cast 1s ease infinite;
+        }
+        @keyframes cast {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+        .fisherman-content .message {
+            font-size: 1.5rem;
+            margin-top: 20px;
+            color: #ffd700;
+        }
+
+        /* Win Display */
+        .win-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            text-align: center;
+            pointer-events: none;
+            display: none;
+        }
+        .win-display.show { display: block; }
+        .win-display .amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700;
+            animation: winPop 0.5s ease;
+        }
+        @keyframes winPop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .bet-section {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .bet-section label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            display: block;
+            margin-bottom: 8px;
+        }
+        .bet-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffd700;
+        }
+        .bet-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .bet-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .bet-btn.dec { background: #dc2626; color: white; }
+        .bet-btn.inc { background: #22c55e; color: white; }
+
+        .spin-section { flex: 1; }
+        .spin-btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+        .spin-btn:hover { transform: scale(1.02); box-shadow: 0 5px 20px rgba(34,197,94,0.4); }
+        .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .spin-btn.buying {
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+        }
+        .spin-btn.freespins {
+            background: linear-gradient(135deg, #ff6b35, #f7c59f);
+            color: #1a1a2e;
+        }
+
+        /* Buy Bonus */
+        .buy-bonus {
+            margin-top: 10px;
+        }
+        .buy-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,107,53,0.2));
+            color: #ffd700;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .buy-btn:hover {
+            background: linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,107,53,0.4));
+        }
+
+        /* Paytable */
+        .paytable-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #00a8e8, #0077be);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .paytable-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 300;
+            overflow-y: auto;
+        }
+        .paytable-overlay.active { display: block; }
+        .paytable-content {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .paytable-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #00a8e8;
+            margin-bottom: 20px;
+        }
+        .paytable-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .paytable-section h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        .paytable-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .paytable-row:last-child { border-bottom: none; }
+        .close-paytable {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* Scatter Info */
+        .scatter-info {
+            background: linear-gradient(135deg, #ff6b35, #f7c59f);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            color: #1a1a2e;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 400px) {
+            .symbol { font-size: 1.5rem; }
+            .win-display .amount { font-size: 2rem; }
+        }
+
+        /* Auto Spin Controls */
+        .auto-spin-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+        }
+
+        .auto-spin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .auto-spin-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 26px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #ff6b35, #f7c59f);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .auto-spin-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .auto-spin-btn {
+            padding: 8px 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            background: transparent;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auto-spin-btn:hover {
+            border-color: #ff6b35;
+            background: rgba(255,107,53,0.2);
+        }
+
+        .auto-spin-btn.active {
+            background: linear-gradient(135deg, #ff6b35, #e55a2b);
+            border-color: #ff6b35;
+        }
+
+        .auto-spin-btn.infinite {
+            border-color: #ffd700;
+        }
+
+        .auto-spin-btn.infinite.active {
+            background: linear-gradient(135deg, #ffd700, #b8860b);
+            border-color: #ffd700;
+        }
+
+        .auto-spin-status {
+            text-align: center;
+            margin-top: 10px;
+            color: #ff6b35;
+            font-weight: 700;
+        }
+
+        .auto-spin-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .auto-spin-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #ffd700);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .spin-btn.auto-spin {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7c59f 50%, #e55a2b 100%);
+            animation: auto-spin-pulse 1s ease infinite;
+        }
+
+        @keyframes auto-spin-pulse {
+            0%, 100% { box-shadow: 0 10px 30px rgba(255,107,53,0.5); }
+            50% { box-shadow: 0 10px 40px rgba(255,107,53,0.8); }
+        }
+
+        .spin-btn.stop {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            animation: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="back-btn" onclick="window.location.href='/lobby'">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
+        <h1>🎣 Big Bass Bonanza</h1>
+        <div class="balance">$<span id="balance">10000</span></div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+        <!-- Free Spins Banner -->
+        <div class="freespins-banner" id="freespinsBanner">
+            <h2>🎣 FREE SPINS!</h2>
+            <div class="spins-left"><span id="spinsLeft">0</span> Spins Left</div>
+            <div style="margin-top: 10px; font-size: 0.9rem;">
+                Multiplier: <span id="currentMultiplier">1</span>x
+            </div>
+        </div>
+
+        <!-- Slot Machine -->
+        <div class="slot-machine">
+            <div class="reels-container" id="reelsContainer">
+                <!-- Reels will be generated by JS -->
+            </div>
+
+            <!-- Scatter Info -->
+            <div class="scatter-info" id="scatterInfo" style="display: none;">
+                🎣 Free Spins Triggered! Fisherman wilds collect fish values!
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="bet-section">
+                    <label>Bet Amount</label>
+                    <div class="bet-amount">$<span id="betAmount">100</span></div>
+                    <div class="bet-buttons">
+                        <button class="bet-btn dec" onclick="changeBet(-100)">-</button>
+                        <button class="bet-btn inc" onclick="changeBet(100)">+</button>
+                    </div>
+                </div>
+                <div class="spin-section">
+                    <button class="spin-btn" id="spinBtn" onclick="spin()">
+                        SPIN
+                    </button>
+                </div>
+            </div>
+
+            <!-- Buy Bonus -->
+            <div class="buy-bonus">
+                <button class="buy-btn" onclick="buyBonus()">
+                    🎣 BUY FREE SPINS - 100x Bet
+                </button>
+            </div>
+
+            <!-- Auto Spin Controls -->
+            <div class="auto-spin-container">
+                <div class="auto-spin-header">
+                    <span style="color: white; font-weight: 700;">🔄 Auto Spin</span>
+                    <div class="auto-spin-toggle">
+                        <span id="autoSpinLabel" style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Off</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoSpinToggle" onchange="toggleAutoSpin()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="auto-spin-options" id="autoSpinOptions" style="display: none;">
+                    <button class="auto-spin-btn" data-spins="10" onclick="selectAutoSpins(10)">10</button>
+                    <button class="auto-spin-btn" data-spins="25" onclick="selectAutoSpins(25)">25</button>
+                    <button class="auto-spin-btn" data-spins="50" onclick="selectAutoSpins(50)">50</button>
+                    <button class="auto-spin-btn" data-spins="100" onclick="selectAutoSpins(100)">100</button>
+                    <button class="auto-spin-btn infinite" data-spins="0" onclick="selectAutoSpins(0)">∞</button>
+                </div>
+                <div class="auto-spin-status" id="autoSpinStatus" style="display: none;"></div>
+                <div class="auto-spin-progress" id="autoSpinProgress" style="display: none;">
+                    <div class="auto-spin-progress-bar" id="autoSpinProgressBar" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fisherman Animation Overlay -->
+    <div class="fisherman-overlay" id="fishermanOverlay">
+        <div class="fisherman-content">
+            <div class="animation">🎣</div>
+            <div class="message" id="fishermanMessage">Catching fish...</div>
+        </div>
+    </div>
+
+    <!-- Win Display -->
+    <div class="win-display" id="winDisplay">
+        <div class="amount">+$<span id="winAmount">0</span></div>
+    </div>
+
+    <!-- Paytable Button -->
+    <button class="paytable-btn" onclick="showPaytable()">
+        <i class="fas fa-list"></i>
+    </button>
+
+    <!-- Paytable Overlay -->
+    <div class="paytable-overlay" id="paytableOverlay">
+        <button class="close-paytable" onclick="closePaytable()">&times;</button>
+        <div class="paytable-content">
+            <div class="paytable-title">🎣 Big Bass Bonanza Paytable</div>
+
+            <div class="paytable-section">
+                <h3>🎣 Fisherman (Wild)</h3>
+                <div class="paytable-row">
+                    <span>5x</span>
+                    <span>50x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>4x</span>
+                    <span>20x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>3x</span>
+                    <span>5x</span>
+                </div>
+                <p style="color: rgba(255,255,255,0.5); font-size: 0.75rem; margin-top: 5px;">
+                    Wild substitutes for all except Scatter. Collects fish values in Free Spins!
+                </p>
+            </div>
+
+            <div class="paytable-section">
+                <h3>🐟 Fish Symbols</h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">
+                    Fish symbols carry random money values (0.2x - 50x bet).<br>
+                    In Free Spins: Fisherman collects ALL fish values on screen!
+                </p>
+            </div>
+
+            <div class="paytable-section">
+                <h3>🦈 Big Bass Symbol</h3>
+                <div class="paytable-row">
+                    <span>5x</span>
+                    <span>200x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>4x</span>
+                    <span>50x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>3x</span>
+                    <span>10x</span>
+                </div>
+            </div>
+
+            <div class="paytable-section">
+                <h3>🦈🦈 Blue Fish</h3>
+                <div class="paytable-row">
+                    <span>5x</span>
+                    <span>40x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>4x</span>
+                    <span>15x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>3x</span>
+                    <span>5x</span>
+                </div>
+            </div>
+
+            <div class="paytable-section">
+                <h3>🐠 Tropical Fish</h3>
+                <div class="paytable-row">
+                    <span>5x</span>
+                    <span>30x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>4x</span>
+                    <span>10x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>3x</span>
+                    <span>3x</span>
+                </div>
+            </div>
+
+            <div class="paytable-section">
+                <h3>Ace, King</h3>
+                <div class="paytable-row">
+                    <span>5x</span>
+                    <span>15x</span>
+                </div>
+                <div class="paypage-row">
+                    <span>4x</span>
+                    <span>5x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>3x</span>
+                    <span>2x</span>
+                </div>
+            </div>
+
+            <div class="paytable-section">
+                <h3>Q, J, 10</h3>
+                <div class="paytable-row">
+                    <span>5x</span>
+                    <span>10x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>4x</span>
+                    <span>3x</span>
+                </div>
+                <div class="paytable-row">
+                    <span>3x</span>
+                    <span>1x</span>
+                </div>
+            </div>
+
+            <div class="paytable-section">
+                <h3>🎣 Scatter (Lure)</h3>
+                <div class="paytable-row">
+                    <span>5x</span>
+                    <span>20 Free Spins</span>
+                </div>
+                <div class="paytable-row">
+                    <span>4x</span>
+                    <span>15 Free Spins</span>
+                </div>
+                <div class="paytable-row">
+                    <span>3x</span>
+                    <span>10 Free Spins</span>
+                </div>
+            </div>
+
+            <div class="paytable-section" style="background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(247,197,159,0.2));">
+                <h3>💡 Free Spins Features</h3>
+                <ul style="color: rgba(255,255,255,0.8); font-size: 0.85rem; padding-left: 20px;">
+                    <li>Fisherman wilds appear with multipliers</li>
+                    <li>Fisherman collects ALL fish values</li>
+                    <li>More Fisherman = Higher multiplier</li>
+                    <li>Can retrigger more Free Spins!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const SYMBOLS = ['🎣', '🦈', '🐠', 'A', 'K', 'Q', 'J', '10'];
+        const FISH_VALUES = [0.2, 0.5, 1, 2, 5, 10, 20, 50]; // Possible fish money values
+
+        const PAYOUTS = {
+            '🎣': { 3: 5, 4: 20, 5: 50 },
+            '🦈': { 3: 10, 4: 50, 5: 200 },
+            '🐠': { 3: 3, 4: 10, 5: 30 },
+            'A': { 3: 2, 4: 5, 5: 15 },
+            'K': { 3: 2, 4: 5, 5: 15 },
+            'Q': { 3: 1, 4: 3, 5: 10 },
+            'J': { 3: 1, 4: 3, 5: 10 },
+            '10': { 3: 1, 4: 2, 5: 10 },
+        };
+
+        let balance = 10000;
+        let bet = 100;
+        let isSpinning = false;
+        let gameId = 'big_bass';
+        let freeSpinsLeft = 0;
+        let isFreeSpinsMode = false;
+        let currentMultiplier = 1;
+
+        // Auto Spin State
+        let autoSpinEnabled = false;
+        let autoSpinCount = 0;
+        let autoSpinRemaining = 0;
+        let autoSpinInterval = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initReels();
+            loadBalance();
+            updateDisplay();
+        });
+
+        function initReels() {
+            const container = document.getElementById('reelsContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 5; i++) {
+                const reel = document.createElement('div');
+                reel.className = 'reel';
+                reel.id = `reel-${i}`;
+                reel.innerHTML = '<span class="symbol">🎣</span>';
+                container.appendChild(reel);
+            }
+        }
+
+        async function loadBalance() {
+            try {
+                const res = await fetch(`/api/slots/init`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ game_id: gameId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    balance = data.balance;
+                    updateDisplay();
+                }
+            } catch (e) {
+                console.error('Load balance error:', e);
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('balance').textContent = balance.toLocaleString();
+            document.getElementById('betAmount').textContent = bet.toLocaleString();
+
+            const spinBtn = document.getElementById('spinBtn');
+            const banner = document.getElementById('freespinsBanner');
+
+            if (isFreeSpinsMode) {
+                spinBtn.textContent = `FREE SPINS (${freeSpinsLeft})`;
+                spinBtn.classList.add('freespins');
+                spinBtn.classList.remove('buying');
+                banner.classList.add('active');
+                document.getElementById('spinsLeft').textContent = freeSpinsLeft;
+                document.getElementById('currentMultiplier').textContent = currentMultiplier;
+            } else {
+                spinBtn.textContent = 'SPIN';
+                spinBtn.classList.remove('freespins', 'buying');
+                banner.classList.remove('active');
+            }
+        }
+
+        function changeBet(amount) {
+            bet = Math.max(100, Math.min(5000, bet + amount));
+            updateDisplay();
+        }
+
+        async function spin() {
+            if (isSpinning) return;
+
+            if (!isFreeSpinsMode && balance < bet) {
+                showModal('Error', 'Insufficient balance!', 'Deposit more to continue.');
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            // Deduct bet
+            if (!isFreeSpinsMode) {
+                balance -= bet;
+                updateDisplay();
+            }
+
+            // Generate random symbols
+            const reels = [];
+            for (let r = 0; r < 5; r++) {
+                const reelSymbols = [];
+                for (let s = 0; s < 3; s++) {
+                    reelSymbols.push(getRandomSymbol());
+                }
+                reels.push(reelSymbols);
+            }
+
+            // Animate reels
+            await animateReels(reels);
+
+            // Calculate result
+            let totalWin = 0;
+
+            // Check for Free Spins trigger
+            let scatterCount = 0;
+            for (let r = 0; r < 5; r++) {
+                for (let s = 0; s < 3; s++) {
+                    if (reels[r][s] === '🎣') scatterCount++;
+                }
+            }
+
+            if (scatterCount >= 3) {
+                // Trigger Free Spins
+                const spinsAwarded = scatterCount === 5 ? 20 : scatterCount === 4 ? 15 : 10;
+                freeSpinsLeft += spinsAwarded;
+                document.getElementById('scatterInfo').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('scatterInfo').style.display = 'none';
+                }, 3000);
+
+                if (!isFreeSpinsMode) {
+                    // Start free spins mode
+                    isFreeSpinsMode = true;
+                    currentMultiplier = 1;
+                    updateDisplay();
+                }
+            }
+
+            // Calculate line wins
+            for (let row = 0; row < 3; row++) {
+                const symbols = reels.map(r => r[row]);
+                const counts = {};
+
+                symbols.forEach(s => {
+                    if (s !== '🐟') counts[s] = (counts[s] || 0) + 1;
+                });
+
+                // Check for wins on middle row
+                if (row === 1) {
+                    for (const [symbol, count] of Object.entries(counts)) {
+                        if (PAYOUTS[symbol] && count >= 3) {
+                            const payout = bet * (PAYOUTS[symbol][count] || 0);
+                            totalWin += payout * (isFreeSpinsMode ? currentMultiplier : 1);
+                        }
+                    }
+                }
+
+                // In Free Spins: Check for Fisherman + Fish combination
+                if (isFreeSpinsMode) {
+                    const hasFisherman = symbols.includes('🎣');
+                    if (hasFisherman) {
+                        // Collect all fish values
+                        for (let c = 0; c < 5; c++) {
+                            if (reels[c][row] === '🐟') {
+                                const fishValue = FISH_VALUES[Math.floor(Math.random() * FISH_VALUES.length)];
+                                totalWin += bet * fishValue * currentMultiplier;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Update balance
+            balance += totalWin;
+
+            // Show win
+            if (totalWin > 0) {
+                showWin(totalWin);
+            }
+
+            // Decrease free spins
+            if (isFreeSpinsMode) {
+                freeSpinsLeft--;
+                currentMultiplier++;
+
+                if (freeSpinsLeft <= 0) {
+                    isFreeSpinsMode = false;
+                }
+            }
+
+            updateDisplay();
+            saveBalance();
+
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+        }
+
+        function getRandomSymbol() {
+            // Weight distribution
+            const weights = {
+                '🎣': 5,    // Wild/Fisherman
+                '🦈': 3,    // Big Bass
+                '🐠': 4,    // Tropical Fish
+                '🐟': 8,    // Fish (money)
+                'A': 10,
+                'K': 10,
+                'Q': 12,
+                'J': 12,
+                '10': 12,
+            };
+
+            const allSymbols = Object.keys(weights);
+            const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+            let rand = Math.random() * totalWeight;
+
+            for (const symbol of allSymbols) {
+                rand -= weights[symbol];
+                if (rand <= 0) return symbol;
+            }
+            return allSymbols[allSymbols.length - 1];
+        }
+
+        async function animateReels(reels) {
+            const duration = 1500;
+            const steps = 20;
+            const delay = duration / steps;
+
+            for (let step = 0; step < steps; step++) {
+                for (let r = 0; r < 5; r++) {
+                    const reel = document.getElementById(`reel-${r}`);
+                    const symbols = reel.querySelectorAll('.symbol');
+                    const visibleIndex = step % 3;
+
+                    symbols.forEach((sym, i) => {
+                        if (i === visibleIndex) {
+                            sym.textContent = getRandomSymbol();
+                        }
+                    });
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+
+            // Final symbols
+            for (let r = 0; r < 5; r++) {
+                const reel = document.getElementById(`reel-${r}`);
+                reel.innerHTML = reels[r].map(s => `<span class="symbol">${s}</span>`).join('');
+            }
+        }
+
+        async function buyBonus() {
+            if (isSpinning) return;
+
+            const cost = bet * 100;
+            if (balance < cost) {
+                showModal('Error', 'Insufficient balance!', 'Need 100x bet to buy free spins.');
+                return;
+            }
+
+            balance -= cost;
+            updateDisplay();
+
+            // Give free spins
+            freeSpinsLeft = 10;
+            isFreeSpinsMode = true;
+            currentMultiplier = 1;
+            updateDisplay();
+        }
+
+        function showWin(amount, text = '') {
+            const display = document.getElementById('winDisplay');
+            document.getElementById('winAmount').textContent = amount.toLocaleString();
+            display.classList.add('show');
+
+            setTimeout(() => {
+                display.classList.remove('show');
+            }, 2000);
+        }
+
+        async function saveBalance() {
+            try {
+                await fetch(`/api/slots/balance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ balance: balance })
+                });
+            } catch (e) {
+                console.error('Save balance error:', e);
+            }
+        }
+
+        function showPaytable() {
+            document.getElementById('paytableOverlay').classList.add('active');
+        }
+
+        function closePaytable() {
+            document.getElementById('paytableOverlay').classList.remove('active');
+        }
+
+        // Modal
+        function showModal(icon, title, message, btnText = 'OK') {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); z-index: 500;
+                display: flex; justify-content: center; align-items: center;
+            `;
+
+            overlay.innerHTML = `
+                <div style="
+                    background: linear-gradient(135deg, #0077be, #00a8e8);
+                    border-radius: 20px; padding: 30px;
+                    text-align: center; max-width: 350px;
+                ">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">${icon}</div>
+                    <h2 style="color: white; margin-bottom: 10px;">${title}</h2>
+                    <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px;">${message}</p>
+                    <button onclick="this.closest('div').remove(); this.closest('div').previousElementSibling.remove();"
+                        style="
+                            background: white; border: none; padding: 12px 30px;
+                            border-radius: 10px; color: #0077be;
+                            font-weight: 600; cursor: pointer;
+                    ">${btnText}</button>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+        }
+
+        // Auto Spin Functions
+        function toggleAutoSpin() {
+            const toggle = document.getElementById('autoSpinToggle');
+            const options = document.getElementById('autoSpinOptions');
+            const status = document.getElementById('autoSpinStatus');
+            const progress = document.getElementById('autoSpinProgress');
+            const spinBtn = document.getElementById('spinBtn');
+
+            autoSpinEnabled = toggle.checked;
+            options.style.display = autoSpinEnabled ? 'flex' : 'none';
+            status.style.display = 'none';
+            progress.style.display = 'none';
+
+            if (autoSpinEnabled) {
+                document.getElementById('autoSpinLabel').textContent = 'On';
+                selectAutoSpins(0);
+            } else {
+                stopAutoSpin();
+                document.getElementById('autoSpinLabel').textContent = 'Off';
+                spinBtn.classList.remove('auto-spin', 'stop');
+                spinBtn.textContent = 'SPIN';
+            }
+        }
+
+        function selectAutoSpins(count) {
+            document.querySelectorAll('.auto-spin-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if ((count === 0 && btn.dataset.spins === '0') ||
+                    (count > 0 && parseInt(btn.dataset.spins) === count)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            autoSpinCount = count;
+            autoSpinRemaining = count;
+
+            if (count === 0) {
+                document.getElementById('autoSpinStatus').textContent = '∞ Auto Spinning...';
+            } else {
+                document.getElementById('autoSpinStatus').textContent = `${count} Auto Spins`;
+            }
+
+            document.getElementById('autoSpinStatus').style.display = 'block';
+            document.getElementById('autoSpinProgress').style.display = count > 0 ? 'block' : 'none';
+
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.classList.add('auto-spin');
+            spinBtn.classList.remove('stop');
+            spinBtn.textContent = '🔄 AUTO SPINNING...';
+
+            startAutoSpin();
+        }
+
+        async function startAutoSpin() {
+            if (!autoSpinEnabled) return;
+
+            if (autoSpinRemaining > 0) {
+                autoSpinRemaining--;
+                updateAutoSpinStatus();
+
+                if (bet > balance) {
+                    stopAutoSpin();
+                    showModal('Error', 'Insufficient Balance!', 'Auto spin stopped.');
+                    return;
+                }
+
+                await performAutoSpin();
+
+                if (autoSpinCount > 0) {
+                    const progress = ((autoSpinCount - autoSpinRemaining) / autoSpinCount) * 100;
+                    document.getElementById('autoSpinProgressBar').style.width = progress + '%';
+                }
+
+                if (autoSpinRemaining > 0 || autoSpinCount === 0) {
+                    autoSpinInterval = setTimeout(startAutoSpin, 1500);
+                } else {
+                    stopAutoSpin();
+                }
+            } else {
+                stopAutoSpin();
+            }
+        }
+
+        async function performAutoSpin() {
+            if (isSpinning) return;
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            if (!isFreeSpinsMode) {
+                balance -= bet;
+                updateDisplay();
+            }
+
+            const reels = [];
+            for (let r = 0; r < 5; r++) {
+                const reelSymbols = [];
+                for (let s = 0; s < 3; s++) {
+                    reelSymbols.push(getRandomSymbol());
+                }
+                reels.push(reelSymbols);
+            }
+
+            await animateReels(reels);
+
+            let totalWin = 0;
+
+            let scatterCount = 0;
+            for (let r = 0; r < 5; r++) {
+                for (let s = 0; s < 3; s++) {
+                    if (reels[r][s] === '🎣') scatterCount++;
+                }
+            }
+
+            if (scatterCount >= 3) {
+                const spinsAwarded = scatterCount === 5 ? 20 : scatterCount === 4 ? 15 : 10;
+                freeSpinsLeft += spinsAwarded;
+
+                if (!isFreeSpinsMode) {
+                    isFreeSpinsMode = true;
+                    currentMultiplier = 1;
+                    updateDisplay();
+                }
+            }
+
+            for (let row = 0; row < 3; row++) {
+                const symbols = reels.map(r => r[row]);
+                const counts = {};
+
+                symbols.forEach(s => {
+                    if (s !== '🐟') counts[s] = (counts[s] || 0) + 1;
+                });
+
+                if (row === 1) {
+                    for (const [symbol, count] of Object.entries(counts)) {
+                        if (PAYOUTS[symbol] && count >= 3) {
+                            const payout = bet * (PAYOUTS[symbol][count] || 0);
+                            totalWin += payout * (isFreeSpinsMode ? currentMultiplier : 1);
+                        }
+                    }
+                }
+
+                if (isFreeSpinsMode) {
+                    const hasFisherman = symbols.includes('🎣');
+                    if (hasFisherman) {
+                        for (let c = 0; c < 5; c++) {
+                            if (reels[c][row] === '🐟') {
+                                const fishValue = FISH_VALUES[Math.floor(Math.random() * FISH_VALUES.length)];
+                                totalWin += bet * fishValue * currentMultiplier;
+                            }
+                        }
+                    }
+                }
+            }
+
+            balance += totalWin;
+
+            if (totalWin > 0) {
+                showWin(totalWin);
+            }
+
+            if (isFreeSpinsMode) {
+                freeSpinsLeft--;
+                currentMultiplier++;
+
+                if (freeSpinsLeft <= 0) {
+                    isFreeSpinsMode = false;
+                }
+            }
+
+            updateDisplay();
+            saveBalance();
+
+            isSpinning = false;
+        }
+
+        function updateAutoSpinStatus() {
+            if (autoSpinCount === 0) {
+                document.getElementById('autoSpinStatus').textContent = '∞ Auto Spinning...';
+            } else {
+                document.getElementById('autoSpinStatus').textContent =
+                    `${autoSpinRemaining} / ${autoSpinCount} spins remaining`;
+            }
+        }
+
+        function stopAutoSpin() {
+            autoSpinEnabled = false;
+            autoSpinRemaining = 0;
+
+            if (autoSpinInterval) {
+                clearTimeout(autoSpinInterval);
+                autoSpinInterval = null;
+            }
+
+            document.getElementById('autoSpinToggle').checked = false;
+            document.getElementById('autoSpinLabel').textContent = 'Off';
+            document.getElementById('autoSpinOptions').style.display = 'none';
+            document.getElementById('autoSpinStatus').style.display = 'none';
+            document.getElementById('autoSpinProgress').style.display = 'none';
+
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.classList.remove('auto-spin', 'stop');
+            spinBtn.textContent = 'SPIN';
+            spinBtn.disabled = false;
+            isSpinning = false;
+        }
+    </script>
+</body>
+</html>

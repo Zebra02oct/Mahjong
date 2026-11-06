@@ -1,0 +1,7 @@
+# Mahjong Riichi - Requirements
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pygame>=2.5.0
+flask>=3.0.0
+mysql-connector-python>=8.0.0
+werkzeug>=3.0.0

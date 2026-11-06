@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+{% block title %}Login - MegaWin X KUDO777{% endblock %}
+{% block extra_style %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+    :root {
+        --gold: #FFD700;
+        --gold-light: #FFF4B3;
+        --red: #FF073A;
+        --purple: #9B59B6;
+        --cyan: #00D4FF;
+        --neon-pink: #FF00FF;
+        --neon-blue: #00FFFF;
+    }
+
+    body {
+        font-family: 'Rajdhani', sans-serif;
+        background: #0a0a1a;
+        overflow-x: hidden;
+    }
+
+    /* NEON LIGHT STRIP */
+    .neon-strip {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg,
+            var(--red),
+            var(--gold),
+            var(--cyan),
+            var(--purple),
+            var(--red));
+        background-size: 200% 100%;
+        animation: neon-flow 3s linear infinite;
+        box-shadow:
+            0 0 10px var(--red),
+            0 0 20px var(--gold),
+            0 0 30px var(--cyan);
+    }
+
+    @keyframes neon-flow {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 200% 50%; }
+    }
+
+    /* FLOATING NEON LIGHTS */
+    .neon-light {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: neon-blink 2s ease-in-out infinite;
+    }
+
+    @keyframes neon-blink {
+        0%, 100% {
+            opacity: 1;
+            box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+        }
+        50% {
+            opacity: 0.3;
+            box-shadow: 0 0 5px currentColor;
+        }
+    }
+
+    /* BACKGROUND EFFECTS */
+    .login-bg {
+        background:
+            radial-gradient(ellipse at 20% 80%, rgba(255, 7, 58, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 50%, rgba(155, 89, 182, 0.1) 0%, transparent 70%),
+            #0a0a1a;
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* CASINO BANNER */
+    .casino-banner {
+        background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        text-align: center;
+        z-index: 100;
+    }
+
+    .banner-text {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        animation: banner-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes banner-glow {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.3); }
+    }
+
+    .banner-subtitle {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1rem;
+        color: var(--cyan);
+        letter-spacing: 8px;
+        text-transform: uppercase;
+        animation: subtitle-flash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes subtitle-flash {
+        0%, 100% { opacity: 1; text-shadow: 0 0 20px var(--cyan); }
+        50% { opacity: 0.7; text-shadow: 0 0 10px var(--cyan); }
+    }
+
+    /* LOGO AREA */
+    .logo-container {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .logo-icon {
+        font-size: 5rem;
+        animation: logo-bounce 2s ease-in-out infinite;
+        filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+    }
+
+    @keyframes logo-bounce {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-10px) scale(1.05); }
+    }
+
+    .logo-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: linear-gradient(180deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+        animation: title-shine 3s ease-in-out infinite;
+    }
+
+    @keyframes title-shine {
+        0%, 100% { filter: brightness(1) drop-shadow(0 0 20px rgba(255, 215, 0, 0.5)); }
+        50% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(255, 215, 0, 0.8)); }
+    }
+
+    .logo-tagline {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.2rem;
+        color: var(--cyan);
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        animation: tagline-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes tagline-pulse {
+        0%, 100% {
+            text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--cyan);
+            opacity: 1;
+        }
+        50% {
+            text-shadow: 0 0 10px var(--cyan);
+            opacity: 0.8;
+        }
+    }
+
+    /* LOGIN CARD */
+    .login-card {
+        background: linear-gradient(145deg, rgba(30, 30, 60, 0.95) 0%, rgba(15, 15, 35, 0.98) 100%);
+        border: 2px solid transparent;
+        border-image: linear-gradient(135deg, var(--gold), var(--purple), var(--cyan)) 1;
+        border-radius: 20px;
+        padding: 2.5rem;
+        backdrop-filter: blur(20px);
+        box-shadow:
+            0 0 40px rgba(255, 215, 0, 0.2),
+            0 0 80px rgba(155, 89, 182, 0.1),
+            inset 0 1px 0 rgba(255,255,255,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: conic-gradient(from 0deg, transparent, rgba(255, 215, 0, 0.1), transparent 30%);
+        animation: card-rotate 6s linear infinite;
+    }
+
+    @keyframes card-rotate {
+        100% { transform: rotate(360deg); }
+    }
+
+    .card-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--gold);
+        text-align: center;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    /* INPUT FIELDS */
+    .input-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .input-field {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        background: rgba(0, 0, 0, 0.4);
+        border: 2px solid rgba(255, 215, 0, 0.2);
+        border-radius: 12px;
+        color: white;
+        font-size: 1.1rem;
+        font-family: 'Rajdhani', sans-serif;
+        transition: all 0.3s;
+    }
+
+    .input-field:focus {
+        outline: none;
+        border-color: var(--gold);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    .input-field::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .input-label {
+        position: absolute;
+        left: 1rem;
+        top: -0.5rem;
+        background: rgba(30, 30, 60, 0.95);
+        padding: 0 0.5rem;
+        color: var(--gold);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* BUTTONS */
+    .btn-login {
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+        border: none;
+        border-radius: 12px;
+        color: #1a1a4e;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+    }
+
+    .btn-login::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+        transform: rotate(45deg);
+        transition: all 0.5s;
+    }
+
+    .btn-login:hover::before {
+        left: 100%;
+    }
+
+    .btn-login:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(255, 215, 0, 0.6);
+    }
+
+    .btn-login:active {
+        transform: translateY(0);
+    }
+
+    .btn-register {
+        width: 100%;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, var(--purple) 0%, #8E44AD 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 5px 20px rgba(155, 89, 182, 0.4);
+    }
+
+    .btn-register:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(155, 89, 182, 0.6);
+    }
+
+    .btn-guest {
+        width: 100%;
+        padding: 0.75rem 2rem;
+        background: transparent;
+        border: 2px solid var(--cyan);
+        border-radius: 12px;
+        color: var(--cyan);
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .btn-guest:hover {
+        background: var(--cyan);
+        color: #0a0a1a;
+        box-shadow: 0 0 30px var(--cyan);
+    }
+
+    /* ERROR MESSAGE */
+    .error-msg {
+        background: rgba(255, 7, 58, 0.2);
+        border: 1px solid var(--red);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        color: var(--red);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        animation: error-shake 0.5s ease-out;
+    }
+
+    @keyframes error-shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-5px); }
+        40%, 80% { transform: translateX(5px); }
+    }
+
+    /* DECORATIVE ELEMENTS */
+    .corner-decoration {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        border: 2px solid var(--gold);
+        opacity: 0.5;
+    }
+
+    .corner-tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+    .corner-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+    .corner-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+    .corner-br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+    /* FLOATING SYMBOLS */
+    .floating-symbol {
+        position: fixed;
+        font-size: 3rem;
+        opacity: 0.15;
+        animation: float-symbol 15s linear infinite;
+        pointer-events: none;
+    }
+
+    @keyframes float-symbol {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.15; }
+        90% { opacity: 0.15; }
+        100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* DEMO HINT */
+    .demo-hint {
+        background: rgba(0, 212, 255, 0.1);
+        border: 1px solid rgba(0, 212, 255, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .demo-hint-title {
+        color: var(--cyan);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .demo-hint-text {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.9rem;
+    }
+
+    .demo-hint-text code {
+        background: rgba(0,0,0,0.3);
+        padding: 0.2rem 0.5rem;
+        border-radius: 5px;
+        color: var(--gold);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 480px) {
+        .banner-text { font-size: 1.8rem; }
+        .banner-subtitle { font-size: 0.7rem; letter-spacing: 4px; }
+        .logo-title { font-size: 1.8rem; }
+        .login-card { padding: 1.5rem; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<!-- Neon Light Strip -->
+<div class="neon-strip"></div>
+
+<!-- Casino Banner -->
+<div class="casino-banner">
+    <div class="banner-text">MEGAWIN</div>
+    <div class="banner-subtitle">X KUDO777</div>
+</div>
+
+<!-- Floating Background Symbols -->
+<div id="floating-symbols"></div>
+
+<!-- Neon Lights -->
+<div id="neon-lights"></div>
+
+<!-- Login Background -->
+<div class="login-bg min-h-screen flex items-center justify-center p-4 pt-24">
+    <div class="w-full max-w-md relative z-10">
+        <!-- Logo -->
+        <div class="logo-container animate-fade-in">
+            <div class="logo-icon">🎰</div>
+            <div class="logo-title">MEGAWIN</div>
+            <div class="logo-tagline">X KUDO777</div>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card relative animate-slide-up">
+            <!-- Corner Decorations -->
+            <div class="corner-decoration corner-tl"></div>
+            <div class="corner-decoration corner-tr"></div>
+            <div class="corner-decoration corner-bl"></div>
+            <div class="corner-decoration corner-br"></div>
+
+            <h2 class="card-title">LOGIN TO PLAY</h2>
+
+            <div id="login-error" class="error-msg hidden"></div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label class="input-label">USERNAME</label>
+                    <input type="text" id="username" class="input-field" placeholder="Enter your username" autocomplete="username">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">PASSWORD</label>
+                    <input type="password" id="password" class="input-field" placeholder="Enter your password" autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn-login">
+                    🏆 LOGIN 🏆
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <span class="text-slate-500">Don't have an account?</span>
+                <button onclick="showRegister()" class="text-purple-400 hover:text-purple-300 font-semibold ml-2 transition">
+                    Register Now
+                </button>
+            </div>
+        </div>
+
+        <!-- Register Card (Hidden by default) -->
+        <div id="register-card" class="login-card relative hidden mt-4 animate-slide-up">
+            <div class="corner-decoration corner-tl"></div>
+            <div class="corner-decoration corner-tr"></div>
+            <div class="corner-decoration corner-bl"></div>
+            <div class="corner-decoration corner-br"></div>
+
+            <h2 class="card-title">CREATE ACCOUNT</h2>
+
+            <div id="register-error" class="error-msg hidden"></div>
+
+            <form onsubmit="handleRegister(event)">
+                <div class="input-group">
+                    <label class="input-label">USERNAME</label>
+                    <input type="text" id="reg-username" class="input-field" placeholder="Choose a username" autocomplete="username">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">PASSWORD</label>
+                    <input type="password" id="reg-password" class="input-field" placeholder="Create a password" autocomplete="new-password">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">CONFIRM PASSWORD</label>
+                    <input type="password" id="reg-confirm" class="input-field" placeholder="Confirm your password" autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn-register">
+                    🎲 REGISTER 🎲
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <span class="text-slate-500">Already have an account?</span>
+                <button onclick="showLogin()" class="text-purple-400 hover:text-purple-300 font-semibold ml-2 transition">
+                    Login Here
+                </button>
+            </div>
+        </div>
+
+        <!-- Guest Button -->
+        <div class="mt-4 animate-slide-up" style="animation-delay: 0.2s;">
+            <button onclick="playAsGuest()" class="btn-guest">
+                🎮 PLAY AS GUEST
+            </button>
+        </div>
+
+        <!-- Demo Hint -->
+        <div class="demo-hint animate-slide-up" style="animation-delay: 0.3s;">
+            <div class="demo-hint-title">Demo Account</div>
+            <div class="demo-hint-text">
+                Username: <code>player</code> | Password: <code>password123</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Create floating background symbols
+function createFloatingSymbols() {
+    const container = document.getElementById('floating-symbols');
+    const symbols = ['🀄', '⚡', '💎', '👑', '🎰', '⭐', '🍀', '💰'];
+
+    for (let i = 0; i < 15; i++) {
+        const symbol = document.createElement('div');
+        symbol.className = 'floating-symbol';
+        symbol.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        symbol.style.left = Math.random() * 100 + 'vw';
+        symbol.style.animationDelay = Math.random() * 15 + 's';
+        symbol.style.animationDuration = (Math.random() * 10 + 15) + 's';
+        container.appendChild(symbol);
+    }
+}
+
+// Create neon lights
+function createNeonLights() {
+    const container = document.getElementById('neon-lights');
+    const colors = ['#FF073A', '#FFD700', '#00D4FF', '#9B59B6', '#FF00FF'];
+
+    for (let i = 0; i < 10; i++) {
+        const light = document.createElement('div');
+        light.className = 'neon-light';
+        light.style.left = Math.random() * 100 + 'vw';
+        light.style.top = Math.random() * 100 + 'vh';
+        light.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        light.style.color = colors[Math.floor(Math.random() * colors.length)];
+        light.style.animationDelay = Math.random() * 2 + 's';
+        container.appendChild(light);
+    }
+}
+
+// Handle Login
+function handleLogin(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('login-error');
+
+    if (!username || !password) {
+        errorDiv.textContent = 'Please fill in all fields';
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            window.location.href = '/lobby';
+        } else {
+            errorDiv.textContent = data.error || 'Login failed. Please try again.';
+            errorDiv.classList.remove('hidden');
+        }
+    }).catch(() => {
+        errorDiv.textContent = 'Connection error. Please try again.';
+        errorDiv.classList.remove('hidden');
+    });
+}
+
+// Handle Register
+function handleRegister(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('reg-username').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm = document.getElementById('reg-confirm').value;
+    const errorDiv = document.getElementById('register-error');
+
+    if (!username || !password || !confirm) {
+        errorDiv.textContent = 'Please fill in all fields';
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    if (password !== confirm) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    if (username.length < 3) {
+        errorDiv.textContent = 'Username must be at least 3 characters';
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    if (password.length < 6) {
+        errorDiv.textContent = 'Password must be at least 6 characters';
+        errorDiv.classList.remove('hidden');
+        return;
+    }
+
+    fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            window.location.href = '/lobby';
+        } else {
+            errorDiv.textContent = data.error || 'Registration failed. Please try again.';
+            errorDiv.classList.remove('hidden');
+        }
+    }).catch(() => {
+        errorDiv.textContent = 'Connection error. Please try again.';
+        errorDiv.classList.remove('hidden');
+    });
+}
+
+// Show Register Form
+function showRegister() {
+    document.querySelector('.login-card').classList.add('hidden');
+    document.getElementById('register-card').classList.remove('hidden');
+}
+
+// Show Login Form
+function showLogin() {
+    document.querySelector('.login-card').classList.remove('hidden');
+    document.getElementById('register-card').classList.add('hidden');
+}
+
+// Play as Guest
+function playAsGuest() {
+    // Register a guest account
+    const guestName = 'Guest_' + Math.random().toString(36).substring(7);
+    const guestPassword = 'guest123';
+
+    fetch('/api/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username: guestName, password: guestPassword})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            window.location.href = '/lobby';
+        } else {
+            // Try login as existing guest
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: guestName, password: guestPassword})
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    window.location.href = '/lobby';
+                }
+            });
+        }
+    });
+}
+
+// Handle Enter key
+document.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        const loginCard = document.querySelector('.login-card:not(.hidden)');
+        if (loginCard) {
+            const form = loginCard.querySelector('form');
+            if (form) form.onsubmit();
+        }
+    }
+});
+
+// Initialize
+createFloatingSymbols();
+createNeonLights();
+</script>
+{% endblock %}

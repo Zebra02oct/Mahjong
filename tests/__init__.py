@@ -1,0 +1,3 @@
+"""
+Mahjong Riichi - Tests
+"""

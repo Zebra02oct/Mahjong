@@ -1,0 +1,551 @@
+{% extends "base.html" %}
+{% block title %}Game - Mahjong Riichi{% endblock %}
+{% block extra_style %}
+<style>
+    .game-container {
+        background: linear-gradient(180deg, #1a472a 0%, #0d2818 100%);
+        position: relative;
+    }
+    .game-container::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 20% 80%, rgba(255,215,0,0.05) 0%, transparent 30%),
+            radial-gradient(circle at 80% 20%, rgba(255,215,0,0.05) 0%, transparent 30%);
+        pointer-events: none;
+    }
+    .felt-texture {
+        background-image:
+            repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.03) 2px,
+                rgba(0,0,0,0.03) 4px
+            );
+    }
+    .player-seat {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 10px 15px;
+        min-width: 200px;
+    }
+    .player-seat.active {
+        border-color: #fbbf24;
+        box-shadow: 0 0 20px rgba(251,191,36,0.3);
+    }
+    .player-seat.current-turn {
+        animation: pulse-border 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-border {
+        0%, 100% { box-shadow: 0 0 20px rgba(251,191,36,0.3); }
+        50% { box-shadow: 0 0 40px rgba(251,191,36,0.6); }
+    }
+    .wind-indicator {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .wind-east { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .wind-south { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .wind-west { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .wind-north { background: linear-gradient(135deg, #a855f7, #9333ea); }
+    .discard-pile {
+        min-height: 90px;
+        background: rgba(0,0,0,0.25);
+        border-radius: 10px;
+        padding: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    .dora-indicator {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 20px;
+        height: 20px;
+        background: #ef4444;
+        border-radius: 50%;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .action-bar {
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        padding: 12px 20px;
+    }
+    .action-btn {
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    .action-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+    }
+    .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .riichi-stick {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px 8px;
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    .tile-3d {
+        transform-style: preserve-3d;
+        perspective: 1000px;
+    }
+    .score-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        border: 2px solid #fbbf24;
+        border-radius: 20px;
+        padding: 40px;
+        z-index: 100;
+        min-width: 400px;
+        animation: pop-in 0.3s ease-out;
+    }
+    @keyframes pop-in {
+        from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+    .pon-kan-kan {
+        opacity: 0.7;
+        transform: scale(0.9);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="game-container min-h-screen flex flex-col">
+    <!-- Top Bar -->
+    <div class="relative z-10 flex justify-between items-center p-4 bg-black/30">
+        <div class="flex items-center gap-4">
+            <button onclick="backToLobby()" class="px-4 py-2 rounded-lg bg-slate-700/50 hover:bg-slate-600 transition-all">
+                ← Menu
+            </button>
+            <div class="text-sm">
+                <span class="text-slate-400">Round</span>
+                <span id="round" class="font-bold ml-1">1</span>
+                <span class="text-slate-400 mx-2">•</span>
+                <span class="text-slate-400">Honba</span>
+                <span id="honba" class="font-bold ml-1 text-orange-400">0</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="text-sm">
+                <span class="text-slate-400">Deck:</span>
+                <span id="deck-count" class="font-bold ml-1">136</span>
+            </div>
+            <div class="text-sm">
+                <span class="text-slate-400">Riichi:</span>
+                <span id="riichi-count" class="font-bold ml-1">0</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-slate-400">Dora:</span>
+                <div id="dora-display" class="flex gap-1 ml-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Area -->
+    <div class="relative z-10 flex-1 flex flex-col justify-between p-4 felt-texture">
+        <!-- Opponents Area -->
+        <div class="mb-4">
+            <div class="flex justify-center gap-4 flex-wrap">
+                <!-- Opponent Top (for 4-player) -->
+                <div id="seat-2" class="player-seat text-center">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <div class="wind-indicator wind-north">北</div>
+                        <span class="font-semibold">Opponent 3</span>
+                    </div>
+                    <div id="opp3-hand" class="flex justify-center mb-2"></div>
+                    <div class="flex items-center justify-between text-xs text-slate-400">
+                        <span>Discards: <span id="opp3-discards">0</span></span>
+                        <span class="riichi-stick hidden" id="opp3-riichi">立直</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-start mt-4">
+                <!-- Opponent Left -->
+                <div id="seat-1" class="player-seat">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <div class="wind-indicator wind-west">西</div>
+                        <span class="font-semibold">Opponent 2</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="text-xs text-slate-400">
+                            <div>Hand: <span id="opp2-count">13</span></div>
+                            <div class="flex flex-wrap gap-1 mt-1 max-w-[100px]" id="opp2-discards"></div>
+                        </div>
+                        <span class="riichi-stick hidden ml-auto" id="opp2-riichi">立直</span>
+                    </div>
+                </div>
+
+                <!-- Center - Discard Piles & Dora -->
+                <div class="flex-1 flex justify-center gap-8">
+                    <div class="text-center">
+                        <div class="text-xs text-slate-400 mb-1">Your Discards</div>
+                        <div id="your-discards" class="discard-pile"></div>
+                    </div>
+                </div>
+
+                <!-- Opponent Right -->
+                <div id="seat-3" class="player-seat">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <div class="wind-indicator wind-east">東</div>
+                        <span class="font-semibold">Opponent 4</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="riichi-stick hidden" id="opp4-riichi">立直</span>
+                        <div class="text-xs text-slate-400 text-right ml-auto">
+                            <div>Hand: <span id="opp4-count">13</span></div>
+                            <div class="flex flex-wrap gap-1 mt-1 max-w-[100px] justify-end" id="opp4-discards"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player Info Bar -->
+        <div id="player-seat" class="player-seat current-turn mx-auto mb-4">
+            <div class="flex items-center justify-center gap-3">
+                <div class="wind-indicator wind-south">南</div>
+                <span class="font-semibold">You</span>
+                <span class="riichi-stick hidden" id="your-riichi">立直</span>
+                <span class="text-slate-400">|</span>
+                <span class="text-sm">
+                    Score: <span id="your-score" class="font-bold text-yellow-400">25000</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Player Hand -->
+        <div class="bg-black/40 rounded-2xl p-6">
+            <div id="hand" class="flex justify-center flex-wrap gap-1 mb-4"></div>
+
+            <!-- Action Buttons -->
+            <div id="action-bar" class="action-bar flex justify-center gap-3 flex-wrap">
+                <button onclick="discardSelected()" id="btn-discard" class="action-btn bg-orange-500 hover:bg-orange-600 text-white">
+                    Discard
+                </button>
+                <button onclick="callRon()" id="btn-ron" class="action-btn bg-red-500 hover:bg-red-600 text-white hidden">
+                    Ron (+<span id="ron-points">0</span>)
+                </button>
+                <button onclick="callTsumo()" id="btn-tsumo" class="action-btn bg-green-500 hover:bg-green-600 text-white hidden">
+                    Tsumo (+<span id="tsumo-points">0</span>)
+                </button>
+                <button onclick="declareRiichi()" id="btn-riichi" class="action-btn bg-purple-500 hover:bg-purple-600 text-white">
+                    Riichi (立直)
+                </button>
+                <button onclick="pass()" id="btn-pass" class="action-btn bg-slate-600 hover:bg-slate-500 text-white">
+                    Pass
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Discard Info -->
+    <div class="relative z-10 bg-black/30 p-3 text-center text-sm">
+        <span class="text-slate-400">Last discard:</span>
+        <span id="last-discard" class="ml-2"></span>
+        <span class="ml-4 text-slate-500">|</span>
+        <span class="ml-4 text-slate-400">Waiting for: <span id="waiting-for" class="text-yellow-400">Your turn</span></span>
+    </div>
+</div>
+
+<!-- Game Over Modal -->
+<div id="game-over-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden">
+    <div class="score-popup text-center">
+        <div id="result-icon" class="text-7xl mb-4">🏆</div>
+        <h2 id="result-title" class="text-3xl font-bold mb-6">Game Over!</h2>
+        <div id="result-details" class="text-left bg-slate-800/50 rounded-xl p-4 mb-6"></div>
+        <button onclick="backToLobby()" class="action-btn bg-purple-500 hover:bg-purple-600 text-white px-8">
+            Back to Lobby
+        </button>
+    </div>
+</div>
+
+<!-- Tiles reference hidden -->
+<div id="tile-chars" class="hidden">1P2P3P4P5P6P7P8P9P1S2S3S4S5S6S7S8S9S1M2M3M4M5M6M7M8M9MEWSN白發中</div>
+
+<script>
+const TILE_SYMBOLS = {
+    0: '🀐', 1: '🀑', 2: '🀒', 3: '🀓', 4: '🀔', 5: '🀕', 6: '🀖', 7: '🀗', 8: '🀘', // Pin (1-9)
+    9: '🀙', 10: '🀚', 11: '🀛', 12: '🀜', 13: '🀝', 14: '🀞', 15: '🀟', 16: '🀠', 17: '🀡', // Sou (1-9)
+    18: '🀇', 19: '🀈', 20: '🀉', 21: '🀊', 22: '🀋', 23: '🀌', 24: '🀍', 25: '🀎', 26: '🀏', // Man (1-9)
+    27: '🀀', 28: '🀁', 29: '🀂', 30: '🀃', // Wind East, South, West, North
+    31: '🀄', // White Dragon
+    32: '🀅', // Green Dragon
+    33: '🀆'  // Red Dragon
+};
+
+let gameId = '{{ session.get("game_id", "") }}';
+let selectedTileIndex = null;
+let isMyTurn = false;
+let pendingCall = null;
+
+// Initialize game
+function initGame() {
+    fetchGameState();
+    // Poll for updates every 2 seconds
+    setInterval(fetchGameState, 2000);
+}
+
+function fetchGameState() {
+    if (!gameId) return;
+
+    fetch(`/api/game/${gameId}/state`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.game_over) {
+                showGameOver(data);
+                return;
+            }
+            updateGameState(data);
+        })
+        .catch(err => console.log('Waiting for game...'));
+}
+
+function updateGameState(data) {
+    // Update round info
+    document.getElementById('round').textContent = data.round || 1;
+    document.getElementById('honba').textContent = data.honba || 0;
+    document.getElementById('deck-count').textContent = data.deck_count || 0;
+    document.getElementById('riichi-count').textContent = data.riichi_sticks || 0;
+
+    // Update player score
+    if (data.players && data.players[0]) {
+        document.getElementById('your-score').textContent = data.players[0].score || 25000;
+    }
+
+    // Render hand
+    if (data.hand) {
+        renderHand(data.hand);
+    }
+
+    // Update dora
+    if (data.dora) {
+        renderDora(data.dora);
+    }
+
+    // Update discards
+    if (data.discards) {
+        renderDiscards(data.discards);
+    }
+
+    // Check if it's my turn
+    isMyTurn = data.current_player === 0;
+    updateTurnIndicator();
+
+    // Show available actions
+    if (data.available_actions) {
+        showActions(data.available_actions);
+    }
+
+    // Check for pending calls
+    if (data.can_ron) {
+        pendingCall = 'ron';
+        document.getElementById('btn-ron').classList.remove('hidden');
+        document.getElementById('ron-points').textContent = data.ron_points || '?';
+    }
+    if (data.can_tsumo) {
+        pendingCall = 'tsumo';
+        document.getElementById('btn-tsumo').classList.remove('hidden');
+        document.getElementById('tsumo-points').textContent = data.tsumo_points || '?';
+    }
+}
+
+function renderHand(tiles) {
+    const handDiv = document.getElementById('hand');
+    handDiv.innerHTML = tiles.map((tile, i) =>
+        `<div class="tile ${selectedTileIndex === i ? 'selected' : ''}"
+              onclick="selectTile(${i})"
+              title="${getTileName(tile)}">
+            ${TILE_SYMBOLS[tile] || '?'}
+         </div>`
+    ).join('');
+}
+
+function getTileName(tile) {
+    const names = [
+        '1 Pin', '2 Pin', '3 Pin', '4 Pin', '5 Pin', '6 Pin', '7 Pin', '8 Pin', '9 Pin',
+        '1 Sou', '2 Sou', '3 Sou', '4 Sou', '5 Sou', '6 Sou', '7 Sou', '8 Sou', '9 Sou',
+        '1 Man', '2 Man', '3 Man', '4 Man', '5 Man', '6 Man', '7 Man', '8 Man', '9 Man',
+        'East', 'South', 'West', 'North', 'White', 'Green', 'Red'
+    ];
+    return names[tile] || 'Unknown';
+}
+
+function renderDora(doraTiles) {
+    const doraDiv = document.getElementById('dora-display');
+    doraDiv.innerHTML = doraTiles.map(tile =>
+        `<div class="tile discard" style="width:32px;height:42px;font-size:20px;">${TILE_SYMBOLS[tile] || '?'}</div>`
+    ).join('');
+}
+
+function renderDiscards(discards) {
+    // Your discards
+    if (discards.self) {
+        document.getElementById('your-discards').innerHTML = discards.self.map(tile =>
+            `<div class="tile discard" style="width:32px;height:42px;font-size:20px;">${TILE_SYMBOLS[tile] || '?'}</div>`
+        ).join('');
+    }
+
+    // Last discard indicator
+    if (discards.last) {
+        document.getElementById('last-discard').textContent = TILE_SYMBOLS[discards.last] || '?';
+    }
+}
+
+function selectTile(index) {
+    if (!isMyTurn) return;
+
+    selectedTileIndex = index;
+    document.querySelectorAll('#hand .tile').forEach((el, i) => {
+        el.classList.toggle('selected', i === index);
+    });
+}
+
+function discardSelected() {
+    if (selectedTileIndex === null) {
+        alert('Please select a tile to discard');
+        return;
+    }
+
+    fetch(`/api/game/${gameId}/discard`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({tile_index: selectedTileIndex})
+    }).then(r => r.json())
+      .then(data => {
+          if (data.success) {
+              selectedTileIndex = null;
+              // State will be refreshed by poll
+          }
+      });
+}
+
+function callRon() {
+    fetch(`/api/game/${gameId}/call/ron`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('btn-ron').classList.add('hidden');
+                pendingCall = null;
+            }
+        });
+}
+
+function callTsumo() {
+    fetch(`/api/game/${gameId}/call/tsumo`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('btn-tsumo').classList.add('hidden');
+                pendingCall = null;
+            }
+        });
+}
+
+function declareRiichi() {
+    fetch(`/api/game/${gameId}/riichi`, {method: 'POST'})
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('your-riichi').classList.remove('hidden');
+                document.getElementById('btn-riichi').disabled = true;
+            }
+        });
+}
+
+function pass() {
+    fetch(`/api/game/${gameId}/pass`, {method: 'POST'})
+        .then(r => r.json())
+        .then(() => {
+            document.getElementById('btn-ron').classList.add('hidden');
+            document.getElementById('btn-tsumo').classList.add('hidden');
+            pendingCall = null;
+        });
+}
+
+function showActions(actions) {
+    document.getElementById('btn-ron').classList.toggle('hidden', !actions.ron);
+    document.getElementById('btn-tsumo').classList.toggle('hidden', !actions.tsumo);
+    document.getElementById('btn-riichi').classList.toggle('hidden', !actions.riichi);
+}
+
+function updateTurnIndicator() {
+    document.querySelectorAll('.player-seat').forEach(el => {
+        el.classList.remove('current-turn');
+    });
+
+    if (isMyTurn) {
+        document.getElementById('player-seat').classList.add('current-turn');
+        document.getElementById('waiting-for').textContent = 'Your turn';
+    } else {
+        document.getElementById('waiting-for').textContent = 'Waiting...';
+    }
+}
+
+function showGameOver(data) {
+    const modal = document.getElementById('game-over-modal');
+    const icon = document.getElementById('result-icon');
+    const title = document.getElementById('result-title');
+    const details = document.getElementById('result-details');
+
+    if (data.winner === 0) {
+        icon.textContent = '🏆';
+        title.textContent = 'You Win!';
+        title.className = 'text-3xl font-bold mb-6 text-yellow-400';
+    } else {
+        icon.textContent = '😢';
+        title.textContent = 'Game Over';
+        title.className = 'text-3xl font-bold mb-6 text-slate-400';
+    }
+
+    // Build results table
+    let html = '<table class="w-full text-sm"><thead><tr class="text-slate-400"><th class="py-2">Player</th><th>Score</th><th>Position</th></tr></thead><tbody>';
+    data.final_scores.forEach((score, i) => {
+        const pos = i === 0 ? '1st 🥇' : i === 1 ? '2nd 🥈' : i === 2 ? '3rd 🥉' : `${i+1}th`;
+        const isYou = i === 0;
+        html += `<tr class="${isYou ? 'text-yellow-400 font-bold' : ''} border-t border-slate-700">
+            <td class="py-2">${isYou ? 'You' : `Player ${i+1}`}</td>
+            <td>${score}</td>
+            <td>${pos}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    details.innerHTML = html;
+
+    modal.classList.remove('hidden');
+}
+
+function backToLobby() {
+    window.location.href = '/lobby';
+}
+
+// Start the game
+document.addEventListener('DOMContentLoaded', initGame);
+</script>
+{% endblock %}
